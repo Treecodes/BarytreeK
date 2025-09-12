@@ -16,8 +16,6 @@ jobs:
       CATCH2_DIR: ${{ github.workspace }}/catch2-install
 
     steps:
-      - name: Checkout BaryTree
-        uses: actions/checkout@v4
 
       - name: Cache Trilinos
         uses: actions/cache@v3
