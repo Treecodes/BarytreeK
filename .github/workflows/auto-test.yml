@@ -30,7 +30,7 @@ jobs:
         if: steps.cache-trilinos.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake g++ gfortran libopenmpi-dev openmpi-bin python3-dev
+          sudo apt-get install -y cmake g++ gfortran libopenmpi-dev openmpi-bin python3-dev libblas-dev liblapack-dev
           git clone --branch trilinos-release-13-4-1 https://github.com/trilinos/Trilinos.git
           mkdir Trilinos/build && cd Trilinos/build
           cmake \
@@ -46,9 +46,11 @@ jobs:
             -D Trilinos_ENABLE_KokkosKernels=ON \
             -DTrilinos_ENABLE_Zoltan2=ON \
             -DTrilinos_ENABLE_ALL_PACKAGES=OFF \
+            -DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF \
             -DTrilinos_ENABLE_TESTS=OFF \
+            -DTrilinos_ENABLE_Compadre=ON \
             ..
-          make -j2 install
+          make -j4 install
 
       - name: Cache spdlog
         uses: actions/cache@v3
