@@ -41,10 +41,12 @@ jobs:
             -DCMAKE_CXX_COMPILER=mpicxx \
             -DTrilinos_ENABLE_Fortran=OFF \
             -DTrilinos_ENABLE_Kokkos=ON \
-            -D Trilinos_ENABLE_KokkosCore=ON \
-            -D Trilinos_ENABLE_KokkosAlgorithms=ON \
-            -D Trilinos_ENABLE_KokkosKernels=ON \
+            -DTrilinos_ENABLE_KokkosCore=ON \
+            -DTrilinos_ENABLE_KokkosAlgorithms=ON \
+            -DTrilinos_ENABLE_KokkosKernels=ON \
             -DTrilinos_ENABLE_Zoltan2=ON \
+            -DTrilinos_ENABLE_OpenMP=ON \
+            -DKokkos_ENABLE_OPENMP=ON \
             -DTrilinos_ENABLE_ALL_PACKAGES=OFF \
             -DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF \
             -DTrilinos_ENABLE_TESTS=OFF \
