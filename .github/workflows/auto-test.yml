@@ -1,0 +1,87 @@
+name: Auto test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-deps:
+    runs-on: ubuntu-latest
+
+    env:
+      TRILINOS_DIR: ${{ github.workspace }}/trilinos-install
+      SPDLOG_DIR: ${{ github.workspace }}/spdlog-install
+      CATCH2_DIR: ${{ github.workspace }}/catch2-install
+
+    steps:
+      - name: Checkout BaryTree
+        uses: actions/checkout@v4
+
+      - name: Cache Trilinos
+        uses: actions/cache@v3
+        id: cache-trilinos
+        with:
+          path: ${{ env.TRILINOS_DIR }}
+          key: trilinos-${{ runner.os }}-13.4.1
+
+      - name: Build Trilinos (if not cached)
+        if: steps.cache-trilinos.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ gfortran libopenmpi-dev openmpi-bin python3-dev
+          git clone --branch trilinos-release-13-4-1 https://github.com/trilinos/Trilinos.git
+          mkdir Trilinos/build && cd Trilinos/build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=${TRILINOS_DIR} \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DTPL_ENABLE_MPI=ON \
+            -DCMAKE_C_COMPILER=mpicc \
+            -DCMAKE_CXX_COMPILER=mpicxx \
+            -DTrilinos_ENABLE_Fortran=OFF \
+            -DTrilinos_ENABLE_Kokkos=ON \
+            -D Trilinos_ENABLE_KokkosCore=ON \
+            -D Trilinos_ENABLE_KokkosAlgorithms=ON \
+            -D Trilinos_ENABLE_KokkosKernels=ON \
+            -DTrilinos_ENABLE_Zoltan2=ON \
+            -DTrilinos_ENABLE_ALL_PACKAGES=OFF \
+            -DTrilinos_ENABLE_TESTS=OFF \
+            ..
+          make -j2 install
+
+      - name: Cache spdlog
+        uses: actions/cache@v3
+        id: cache-spdlog
+        with:
+          path: ${{ env.SPDLOG_DIR }}
+          key: spdlog-${{ runner.os }}-v1.13.0
+
+      - name: Build spdlog (if not cached)
+        if: steps.cache-spdlog.outputs.cache-hit != 'true'
+        run: |
+          git clone --branch v1.13.0 https://github.com/gabime/spdlog.git
+          mkdir spdlog/build && cd spdlog/build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=${SPDLOG_DIR} \
+            -DCMAKE_BUILD_TYPE=Release \
+            ..
+          make -j2 install
+
+      - name: Cache Catch2
+        uses: actions/cache@v3
+        id: cache-catch2
+        with:
+          path: ${{ env.CATCH2_DIR }}
+          key: catch2-${{ runner.os }}-v3.5.3
+
+      - name: Build Catch2 (if not cached)
+        if: steps.cache-catch2.outputs.cache-hit != 'true'
+        run: |
+          git clone --branch v3.5.3 https://github.com/catchorg/Catch2.git
+          mkdir Catch2/build && cd Catch2/build
+          cmake \
+            -DCMAKE_INSTALL_PREFIX=${CATCH2_DIR} \
+            -DCMAKE_BUILD_TYPE=Release \
+            ..
+          make -j2 install
