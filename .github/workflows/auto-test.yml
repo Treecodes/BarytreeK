@@ -42,12 +42,13 @@ jobs:
             -DCMAKE_CXX_COMPILER=mpicxx \
             -DTrilinos_ENABLE_Fortran=OFF \
             -DTrilinos_ENABLE_Kokkos=ON \
-            -DTrilinos_ENABLE_KokkosCore=ON \
-            -DTrilinos_ENABLE_KokkosAlgorithms=ON \
             -DTrilinos_ENABLE_KokkosKernels=ON \
             -DTrilinos_ENABLE_Zoltan2=ON \
             -DTrilinos_ENABLE_OpenMP=ON \
+            -DTpetra_INST_SERIAL:BOOL=ON \
+            -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
+            -DKokkos_ENABLE_CUDA=OFF \
             -DTrilinos_ENABLE_ALL_PACKAGES=OFF \
             -DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF \
             -DTrilinos_ENABLE_TESTS=OFF \
