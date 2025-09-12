@@ -37,6 +37,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=${TRILINOS_DIR} \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DTPL_ENABLE_MPI=ON \
+            -DCMAKE_CXX_STANDARD=17 \
             -DCMAKE_C_COMPILER=mpicc \
             -DCMAKE_CXX_COMPILER=mpicxx \
             -DTrilinos_ENABLE_Fortran=OFF \
