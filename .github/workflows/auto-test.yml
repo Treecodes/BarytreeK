@@ -31,7 +31,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake g++ gfortran libopenmpi-dev openmpi-bin python3-dev libblas-dev liblapack-dev
-          git clone --branch trilinos-release-13-4-1 https://github.com/trilinos/Trilinos.git
+          git clone --branch trilinos-release-13-4-1 --depth 1 https://github.com/trilinos/Trilinos.git
           mkdir Trilinos/build && cd Trilinos/build
           cmake \
             -DCMAKE_INSTALL_PREFIX=${TRILINOS_DIR} \
@@ -65,7 +65,7 @@ jobs:
       - name: Build spdlog (if not cached)
         if: steps.cache-spdlog.outputs.cache-hit != 'true'
         run: |
-          git clone --branch v1.13.0 https://github.com/gabime/spdlog.git
+          git clone --branch v1.13.0 --depth 1 https://github.com/gabime/spdlog.git
           mkdir spdlog/build && cd spdlog/build
           cmake \
             -DCMAKE_INSTALL_PREFIX=${SPDLOG_DIR} \
@@ -83,7 +83,7 @@ jobs:
       - name: Build Catch2 (if not cached)
         if: steps.cache-catch2.outputs.cache-hit != 'true'
         run: |
-          git clone --branch v3.5.3 https://github.com/catchorg/Catch2.git
+          git clone --branch v3.5.3 --depth 1 https://github.com/catchorg/Catch2.git
           mkdir Catch2/build && cd Catch2/build
           cmake \
             -DCMAKE_INSTALL_PREFIX=${CATCH2_DIR} \
