@@ -3,8 +3,16 @@ name: Auto test
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - 'scripts/**'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - 'scripts/**'
 
 jobs:
   build-deps:
@@ -22,7 +30,7 @@ jobs:
         id: cache-trilinos
         with:
           path: ${{ env.TRILINOS_DIR }}
-          key: trilinos-${{ runner.os }}-13.4.1
+          key: trilinos-${{ runner.os }}-16.1.0
 
       - name: Build Trilinos (if not cached)
         if: steps.cache-trilinos.outputs.cache-hit != 'true'
