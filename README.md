@@ -1,4 +1,4 @@
-![Auto-test](https://github.com/pbosler/BarytreeK/actions/workflows/auto_test.yml/badge.svg)
+![Auto-test](https://github.com/pbosler/BarytreeK/actions/workflows/auto-test.yml/badge.svg)
 
 # BarytreeK
 A c++/kokkos implementation of [Barytree](https://github.com/Treecodes/BaryTree).
