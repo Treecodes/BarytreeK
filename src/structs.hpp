@@ -4,9 +4,6 @@
 #include "barytreek-config.h"
 
 struct RunConfig {
-	int blfmm_panel_count; // number of panels in the BLFMM tree
-	int blfmm_levels; // number of levels in the BLFMM tree
-	int* blfmm_level_start; // start index of each level in the BLFMM tree
 	int interp_degree; // interpolation degree to use for BLFMM, namelist parameter
 	int interp_point_count; // number of interpolation points
 	real fmm_theta = 0.7; // MAC parameter for well separated threshold, namelist parameter
@@ -20,6 +17,12 @@ struct RunConfig {
 
 	int mpi_p; // total number of MPI ranks
 	int mpi_id; // MPI id
+};
+
+struct TreeInfo {
+	int panel_count; // number of panels in the tree
+	int levels; // number of levels in the tree
+	int* level_start; // start index of each level in the blfmm tree
 };
 
 struct TreePanel_2d {

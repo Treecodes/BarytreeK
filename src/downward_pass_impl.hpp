@@ -6,12 +6,12 @@
 #include "barytreek-config.h"
 #include "bli_impl.hpp"
 
-struct parent_to_child {
+struct parent_to_child_2d {
 	view_panel_2d blfmm_panels;
 	view_reall proxy_target_weights;
 	int interp_deg;
 
-	parent_to_child(view_panel_2d& blfmm_panels_, view_reall& proxy_target_weights_, int interp_deg_) : 
+	parent_to_child_2d(view_panel_2d& blfmm_panels_, view_reall& proxy_target_weights_, int interp_deg_) : 
 					blfmm_panels(blfmm_panels_), proxy_target_weights(proxy_target_weights_), interp_deg(interp_deg_) {}
 
 	KOKKOS_INLINE_FUNCTION
@@ -66,7 +66,7 @@ struct parent_to_child {
 	}
 };
 
-struct leaf_to_point {
+struct leaf_to_point_2d {
 	view_real xcos;
 	view_real ycos;
 	view_real soln;
@@ -75,7 +75,7 @@ struct leaf_to_point {
 	view_intt panel_points_inside;
 	int interp_deg;
 
-	leaf_to_point(view_real& xcos_, view_real& ycos_, view_real& soln_, view_reall& proxy_target_weights_, view_panel_2d& blfmm_panels_, view_intt& panel_points_inside_, int interp_deg_) :
+	leaf_to_point_2d(view_real& xcos_, view_real& ycos_, view_real& soln_, view_reall& proxy_target_weights_, view_panel_2d& blfmm_panels_, view_intt& panel_points_inside_, int interp_deg_) :
 					xcos(xcos_), ycos(ycos_), soln(soln_), proxy_target_weights(proxy_target_weights_), blfmm_panels(blfmm_panels_), panel_points_inside(panel_points_inside_), interp_deg(interp_deg_) {}
 
 	KOKKOS_INLINE_FUNCTION

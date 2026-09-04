@@ -7,39 +7,43 @@
 #include <numbers>
 #include "bli_impl.hpp"
 
-#include <iostream>
-
-struct poisson_pp_interaction {
-	view_real xcos;
-	view_real ycos;
+struct poisson_pp_interaction_2d {
+	view_real xcos_t;
+	view_real ycos_t;
+	view_real xcos_s;
+	view_real ycos_s;
 	view_real charges;
 	view_real soln;
-	view_intt panel_points_inside;
+	view_intt panel_points_inside_target;
+	view_intt panel_points_inside_source;
 	view_interact interaction_list;
-	view_panel_2d blfmm_panels;
+	view_panel_2d blfmm_panels_target;
+	view_panel_2d blfmm_panels_source;
 	real eps;
 
-	poisson_pp_interaction(view_real& xcos_, view_real& ycos_, view_real& charges_, view_real& soln_, view_intt& panel_points_inside_, view_interact& interactions_, view_panel_2d& blfmm_panels_, real eps_) :
-							xcos(xcos_), ycos(ycos_), charges(charges_), soln(soln_), panel_points_inside(panel_points_inside_), interaction_list(interactions_), blfmm_panels(blfmm_panels_), eps(eps_) {}
+	poisson_pp_interaction_2d(view_real& xcos_t_, view_real& ycos_t_, view_real& xcos_s_, view_real& ycos_s_, view_real& charges_, 
+							view_real& soln_, view_intt& panel_points_inside_target_, view_intt& panel_points_inside_source_, 
+							view_interact& interactions_, view_panel_2d& blfmm_panels_target_, view_panel_2d& blfmm_panels_source_, real eps_) :
+							xcos_t(xcos_t_), ycos_t(ycos_t_), xcos_s(xcos_s_), ycos_s(ycos_s_), charges(charges_), soln(soln_), 
+							panel_points_inside_target(panel_points_inside_target_), panel_points_inside_source(panel_points_inside_source_), 
+							interaction_list(interactions_), blfmm_panels_target(blfmm_panels_target_), blfmm_panels_source(blfmm_panels_source_), eps(eps_) {}
 
 	KOKKOS_INLINE_FUNCTION
 	void operator()(const int i) const {
-		// std::cout << i << std::endl;
 		int target_panel = interaction_list(i).target_panel;
 		int source_panel = interaction_list(i).source_panel;
-		int target_count = blfmm_panels(target_panel).point_count;
-		int source_count = blfmm_panels(source_panel).point_count;
+		int target_count = blfmm_panels_target(target_panel).point_count;
+		int source_count = blfmm_panels_source(source_panel).point_count;
 		real tx, ty, sx, sy, gfv, i_t, i_s;
 		real gfc = 1.0/(4.0*std::numbers::pi_v<real>);
-		// std::cout << target_panel << " " << source_panel << " " << target_count << " " << source_count << std::endl;
 		for (int j = 0; j < target_count; j++) {
-			i_t = panel_points_inside(target_panel,j);
-			tx = xcos(i_t);
-			ty = ycos(i_t);
+			i_t = panel_points_inside_target(target_panel,j);
+			tx = xcos_t(i_t);
+			ty = ycos_t(i_t);
 			for (int k = 0; k < source_count; k++) {
-				i_s = panel_points_inside(source_panel,k);
-				sx = xcos(i_s);
-				sy = ycos(i_s);
+				i_s = panel_points_inside_source(source_panel,k);
+				sx = xcos_s(i_s);
+				sy = ycos_s(i_s);
 				gfv = gfc*Kokkos::log((tx-sx)*(tx-sx)+(ty-sy)*(ty-sy)+eps*eps);
 				Kokkos::atomic_add(&soln(i_t), gfv*charges(i_s));
 			}
@@ -47,39 +51,43 @@ struct poisson_pp_interaction {
 	}
 };
 
-struct poisson_pc_interaction {
-	view_real xcos;
-	view_real ycos;
+struct poisson_pc_interaction_2d {
+	view_real xcos_t;
+	view_real ycos_t;
 	view_real soln;
-	view_intt panel_points_inside;
+	view_intt panel_points_inside_target;
 	view_reall proxy_source_weights;
 	view_interact interaction_list;
-	view_panel_2d blfmm_panels;
+	view_panel_2d blfmm_panels_target;
+	view_panel_2d blfmm_panels_source;
 	real eps;
 	int interp_deg;
 
-	poisson_pc_interaction(view_real& xcos_, view_real& ycos_, view_real& soln_, view_intt& panel_points_inside_, view_reall& proxy_source_weights_, view_interact& interaction_list_, view_panel_2d& blfmm_panels_, real eps_, int interp_deg_) : 
-							xcos(xcos_), ycos(ycos_), soln(soln_), panel_points_inside(panel_points_inside_), proxy_source_weights(proxy_source_weights_), interaction_list(interaction_list_), blfmm_panels(blfmm_panels_), eps(eps_), interp_deg(interp_deg_) {}
+	poisson_pc_interaction_2d(view_real& xcos_t_, view_real& ycos_t_, view_real& soln_, view_intt& panel_points_inside_target_, 
+							view_reall& proxy_source_weights_, view_interact& interaction_list_, view_panel_2d& blfmm_panels_target_, 
+							view_panel_2d& blfmm_panels_source_, real eps_, int interp_deg_) : xcos_t(xcos_t_), ycos_t(ycos_t_), soln(soln_), 
+							panel_points_inside_target(panel_points_inside_target_), proxy_source_weights(proxy_source_weights_), 
+							interaction_list(interaction_list_), blfmm_panels_target(blfmm_panels_target_), blfmm_panels_source(blfmm_panels_source_), 
+							eps(eps_), interp_deg(interp_deg_) {}
 
 	KOKKOS_INLINE_FUNCTION
 	void operator()(const int i) const {
 		int target_panel = interaction_list(i).target_panel;
 		int source_panel = interaction_list(i).source_panel;
-		int target_count = blfmm_panels(target_panel).point_count;
-		// real pi4 = std::numbers::pi_v<real> / 4.0;
+		int target_count = blfmm_panels_target(target_panel).point_count;
 		real gfc = 1.0/(4.0*std::numbers::pi_v<real>);
 		real min_x, max_x, x, min_y, max_y, y, cheb_x[max_degree+1], cheb_y[max_degree+1], tx, ty, sx, sy, gfv;
-		min_x = blfmm_panels(source_panel).min_x;
-		max_x = blfmm_panels(source_panel).max_x;
-		min_y = blfmm_panels(source_panel).min_y;
-		max_y = blfmm_panels(source_panel).max_y;
+		min_x = blfmm_panels_source(source_panel).min_x;
+		max_x = blfmm_panels_source(source_panel).max_x;
+		min_y = blfmm_panels_source(source_panel).min_y;
+		max_y = blfmm_panels_source(source_panel).max_y;
 		bli_points_shift(cheb_x, min_x, max_x, interp_deg);
 		bli_points_shift(cheb_y, min_y, max_y, interp_deg);
 		int i_t, index;
 		for (int l = 0; l < target_count; l++) {
-			i_t = panel_points_inside(target_panel,l);
-			tx = xcos(i_t);
-			ty = ycos(i_t);
+			i_t = panel_points_inside_target(target_panel,l);
+			tx = xcos_t(i_t);
+			ty = ycos_t(i_t);
 			index = 0;
 			for (int j = 0; j < interp_deg+1; j++) { // x loop
 				for (int k = 0; k < interp_deg+1; k++) { // y loop
@@ -94,31 +102,36 @@ struct poisson_pc_interaction {
 	}
 };
 
-struct poisson_cp_interaction {
-	view_real xcos;
-	view_real ycos;
+struct poisson_cp_interaction_2d {
+	view_real xcos_s;
+	view_real ycos_s;
 	view_real charges;
-	view_intt panel_points_inside;
+	view_intt panel_points_inside_source;
 	view_reall proxy_target_weights;
 	view_interact interaction_list;
-	view_panel_2d blfmm_panels;
+	view_panel_2d blfmm_panels_target;
+	view_panel_2d blfmm_panels_source;
 	real eps;
 	int interp_deg;
 
-	poisson_cp_interaction(view_real& xcos_, view_real& ycos_, view_real& charges_, view_intt& panel_points_inside_, view_reall& proxy_target_weights_, view_interact& interaction_list_, view_panel_2d& blfmm_panels_, real eps_, int interp_deg_) : 
-							xcos(xcos_), ycos(ycos_), charges(charges_), panel_points_inside(panel_points_inside_), proxy_target_weights(proxy_target_weights_), interaction_list(interaction_list_), blfmm_panels(blfmm_panels_), eps(eps_), interp_deg(interp_deg_) {}
+	poisson_cp_interaction_2d(view_real& xcos_s_, view_real& ycos_s_, view_real& charges_, view_intt& panel_points_inside_source_, 
+							view_reall& proxy_target_weights_, view_interact& interaction_list_, view_panel_2d& blfmm_panels_target_, 
+							view_panel_2d& blfmm_panels_source_, real eps_, int interp_deg_) : xcos_s(xcos_s_), ycos_s(ycos_s_), charges(charges_), 
+							panel_points_inside_source(panel_points_inside_source_), proxy_target_weights(proxy_target_weights_), 
+							interaction_list(interaction_list_), blfmm_panels_target(blfmm_panels_target_), blfmm_panels_source(blfmm_panels_source_), 
+							eps(eps_), interp_deg(interp_deg_) {}
 
 	KOKKOS_INLINE_FUNCTION
 	void operator()(const int i) const {
 		int target_panel = interaction_list(i).target_panel;
 		int source_panel = interaction_list(i).source_panel;
-		int source_count = blfmm_panels(source_panel).point_count;
+		int source_count = blfmm_panels_source(source_panel).point_count;
 		real gfc = 1.0/(4.0*std::numbers::pi_v<real>);
 		real min_x, max_x, x, min_y, max_y, y, cheb_x[max_degree+1], cheb_y[max_degree+1], tx, ty, sx, sy, gfv;
-		min_x = blfmm_panels(target_panel).min_x;
-		max_x = blfmm_panels(target_panel).max_x;
-		min_y = blfmm_panels(target_panel).min_y;
-		max_y = blfmm_panels(target_panel).max_y;
+		min_x = blfmm_panels_target(target_panel).min_x;
+		max_x = blfmm_panels_target(target_panel).max_x;
+		min_y = blfmm_panels_target(target_panel).min_y;
+		max_y = blfmm_panels_target(target_panel).max_y;
 		bli_points_shift(cheb_x, min_x, max_x, interp_deg);
 		bli_points_shift(cheb_y, min_y, max_y, interp_deg);
 		int i_s, index = 0;
@@ -127,9 +140,9 @@ struct poisson_cp_interaction {
 				tx = cheb_x[j];
 				ty = cheb_y[k];
 				for (int l = 0; l < source_count; l++) {
-					i_s = panel_points_inside(source_panel,l);
-					sx = xcos(i_s);
-					sy = ycos(i_s);
+					i_s = panel_points_inside_source(source_panel,l);
+					sx = xcos_s(i_s);
+					sy = ycos_s(i_s);
 					gfv = gfc*Kokkos::log((tx-sx)*(tx-sx)+(ty-sy)*(ty-sy)+eps*eps);
 					Kokkos::atomic_add(&proxy_target_weights(target_panel,index), gfv*charges(i_s));
 				}
@@ -139,30 +152,34 @@ struct poisson_cp_interaction {
 	}
 };
 
-struct poisson_cc_interaction {
+struct poisson_cc_interaction_2d {
 	view_reall proxy_target_weights;
 	view_reall proxy_source_weights;
 	view_interact interaction_list;
-	view_panel_2d blfmm_panels;
+	view_panel_2d blfmm_panels_target;
+	view_panel_2d blfmm_panels_source;
 	real eps;
 	int interp_deg;
 
-	poisson_cc_interaction(view_reall& proxy_target_weights_, view_reall& proxy_source_weights_, view_interact& interaction_list_, view_panel_2d& blfmm_panels_, real eps_, int interp_deg_) :
-							proxy_target_weights(proxy_target_weights_), proxy_source_weights(proxy_source_weights_), interaction_list(interaction_list_), blfmm_panels(blfmm_panels_), eps(eps_), interp_deg(interp_deg_) {}
+	poisson_cc_interaction_2d(view_reall& proxy_target_weights_, view_reall& proxy_source_weights_, view_interact& interaction_list_, 
+							view_panel_2d& blfmm_panels_target_, view_panel_2d& blfmm_panels_source_, real eps_, int interp_deg_) :
+							proxy_target_weights(proxy_target_weights_), proxy_source_weights(proxy_source_weights_), 
+							interaction_list(interaction_list_), blfmm_panels_target(blfmm_panels_target_), 
+							blfmm_panels_source(blfmm_panels_source_), eps(eps_), interp_deg(interp_deg_) {}
 
 	KOKKOS_INLINE_FUNCTION
 	void operator()(const int i) const {
 		int target_panel = interaction_list(i).target_panel;
 		int source_panel = interaction_list(i).source_panel;
 		real gfc = 1.0/(4.0*std::numbers::pi_v<real>);
-		real min_x_t = blfmm_panels(target_panel).min_x;
-		real max_x_t = blfmm_panels(target_panel).max_x;
-		real min_y_t = blfmm_panels(target_panel).min_y;
-		real max_y_t = blfmm_panels(target_panel).max_y;
-		real min_x_s = blfmm_panels(source_panel).min_x;
-		real max_x_s = blfmm_panels(source_panel).max_x;
-		real min_y_s = blfmm_panels(source_panel).min_y;
-		real max_y_s = blfmm_panels(source_panel).max_y;
+		real min_x_t = blfmm_panels_target(target_panel).min_x;
+		real max_x_t = blfmm_panels_target(target_panel).max_x;
+		real min_y_t = blfmm_panels_target(target_panel).min_y;
+		real max_y_t = blfmm_panels_target(target_panel).max_y;
+		real min_x_s = blfmm_panels_source(source_panel).min_x;
+		real max_x_s = blfmm_panels_source(source_panel).max_x;
+		real min_y_s = blfmm_panels_source(source_panel).min_y;
+		real max_y_s = blfmm_panels_source(source_panel).max_y;
 		real tx, ty, sx, sy, gfv;
 		real cheb_x_t[max_degree+1], cheb_y_t[max_degree+1], cheb_x_s[max_degree+1], cheb_y_s[max_degree+1];
 		bli_points_shift(cheb_x_t, min_x_t, max_x_t, interp_deg);

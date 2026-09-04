@@ -7,21 +7,24 @@
 #include "structs.hpp"
 
 struct poisson_2d_dir_sum {
-	view_real xcos;
-	view_real ycos;
+	view_real xcos_t;
+	view_real ycos_t;
+	view_real xcos_s;
+	view_real ycos_s;
 	view_real charges;
 	view_real sol;
 	real eps;
 
-	poisson_2d_dir_sum(view_real& xcos_, view_real& ycos_, view_real& charges_, view_real& sol_, real eps_) :
-						xcos(xcos_), ycos(ycos_), charges(charges_), sol(sol_), eps(eps_) {}
+	poisson_2d_dir_sum(view_real& xcos_t_, view_real& ycos_t_, view_real& xcos_s_, view_real& ycos_s_, view_real& charges_, 
+						view_real& sol_, real eps_) : xcos_t(xcos_t_), ycos_t(ycos_t_), xcos_s(xcos_s_), ycos_s(ycos_s_), 
+						charges(charges_), sol(sol_), eps(eps_) {}
 
 	KOKKOS_INLINE_FUNCTION
 	void operator()(const int i, const int j) const {
-		real tx = xcos(i);
-		real ty = ycos(i);
-		real sx = xcos(j);
-		real sy = ycos(j);
+		real tx = xcos_t(i);
+		real ty = ycos_t(i);
+		real sx = xcos_s(j);
+		real sy = ycos_s(j);
 		real gfc = 1.0/(4.0*std::numbers::pi_v<real>);
 		real gfv = gfc*Kokkos::log((tx-sx)*(tx-sx)+(ty-sy)*(ty-sy)+eps*eps);
 		Kokkos::atomic_add(&sol(i), gfv*charges(j));

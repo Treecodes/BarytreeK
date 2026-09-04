@@ -2,7 +2,7 @@
 #include <vector>
 #include <Kokkos_Core.hpp>
 
-void blfmm_tree_construction(RunConfig& run_config, view_real_host& xcos, view_real_host& ycos, view_panel_2d_host& blfmm_panels, view_int_host& point_leaf_panel, view_intt_host& panel_points_inside) {
+void blfmm_tree_construction(const RunConfig& run_config, TreeInfo& tree_info, view_real_host& xcos, view_real_host& ycos, view_panel_2d_host& blfmm_panels, view_int_host& point_leaf_panel, view_intt_host& panel_points_inside) {
 	std::vector<TreePanel_2d> temp_cube_panels (1);
 	std::vector<std::vector<int>> temp_points_inside (1);
 
@@ -99,17 +99,17 @@ void blfmm_tree_construction(RunConfig& run_config, view_real_host& xcos, view_r
 	}
 
 	int levels = temp_cube_panels.back().level + 1;
-	run_config.blfmm_level_start = (int*) malloc((levels+1) * sizeof(int));
-	run_config.blfmm_levels = levels;
-	run_config.blfmm_level_start[0] = 0;
-	run_config.blfmm_panel_count = temp_cube_panels.size();
+	tree_info.level_start = (int*) malloc((levels+1) * sizeof(int));
+	tree_info.levels = levels;
+	tree_info.level_start[0] = 0;
+	tree_info.panel_count = temp_cube_panels.size();
 	int target_level = 1;
 
 	// copy the vector of panels to the Kokkos view
-	Kokkos::resize(blfmm_panels, run_config.blfmm_panel_count);
-	Kokkos::resize(panel_points_inside, run_config.blfmm_panel_count, run_config.fmm_cluster_thresh);
+	Kokkos::resize(blfmm_panels, tree_info.panel_count);
+	Kokkos::resize(panel_points_inside, tree_info.panel_count, run_config.fmm_cluster_thresh);
 
-	for (int i = 0; i < run_config.blfmm_panel_count; i++) {
+	for (int i = 0; i < tree_info.panel_count; i++) {
 		blfmm_panels(i) = temp_cube_panels[i];
 		if (blfmm_panels(i).is_leaf) {
 			for (int j = 0; j < blfmm_panels(i).point_count; j++) {
@@ -120,9 +120,9 @@ void blfmm_tree_construction(RunConfig& run_config, view_real_host& xcos, view_r
 		y_ex = blfmm_panels(i).max_y - blfmm_panels(i).min_y;
 		blfmm_panels(i).radius = 0.5*sqrt(x_ex*x_ex + y_ex*y_ex);
 		if (blfmm_panels(i).level == target_level) {
-			run_config.blfmm_level_start[target_level] = i;
+			tree_info.level_start[target_level] = i;
 			target_level += 1;
 		}
 	}
-	run_config.blfmm_level_start[levels] = run_config.blfmm_panel_count;
+	tree_info.level_start[levels] = tree_info.panel_count;
 }	

@@ -6,7 +6,8 @@
 #include "structs.hpp"
 #include "barytreek-config.h"
 
-void poisson_fmm_interactions(const RunConfig& run_config, view_real& xcos, view_real& ycos, view_real& charges, view_real& soln, view_intt& panel_points_inside, 
-								view_reall& proxy_source_weights, view_reall& proxy_target_weights, view_interact& pp_ints, view_interact& pc_ints, view_interact& cp_ints, view_interact& cc_ints, view_panel_2d& blfmm_panels);
+void poisson_fmm_interactions_2d(const RunConfig& run_config, view_real& xcos_t, view_real& ycos_t, view_real& xcos_s, view_real& ycos_s, view_real& charges, view_real& soln, view_intt& panel_points_inside_source, view_intt& panel_points_inside_target, 
+								view_reall& proxy_source_weights, view_reall& proxy_target_weights, view_interact& pp_ints, view_interact& pc_ints, view_interact& cp_ints, view_interact& cc_ints, 
+								view_panel_2d& blfmm_panels_source, view_panel_2d& blfmm_panels_target);
 
 #endif

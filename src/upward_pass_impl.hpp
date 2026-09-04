@@ -6,7 +6,7 @@
 #include "barytreek-config.h"
 #include "bli_impl.hpp"
 
-struct base_pots {
+struct base_pots_2d {
 	view_real xcos;
 	view_real ycos;
 	view_real charges;
@@ -15,7 +15,7 @@ struct base_pots {
 	view_int point_leaf_panel;
 	int interp_deg;
 
-	base_pots(view_real& xcos_, view_real& ycos_, view_real& charges_, view_panel_2d& blfmm_panels_, 
+	base_pots_2d(view_real& xcos_, view_real& ycos_, view_real& charges_, view_panel_2d& blfmm_panels_, 
 				view_reall& proxy_source_weights_, view_int& point_leaf_panel_, int interp_deg_) :
 				xcos(xcos_), ycos(ycos_), charges(charges_), blfmm_panels(blfmm_panels_), 
 				proxy_source_weights(proxy_source_weights_), point_leaf_panel(point_leaf_panel_), interp_deg(interp_deg_) {}
@@ -42,12 +42,12 @@ struct base_pots {
 	}
 };
 
-struct child_to_parent {
+struct child_to_parent_2d {
 	view_panel_2d blfmm_panels;
 	view_reall proxy_source_weights;
 	int interp_deg;
 
-	child_to_parent(view_panel_2d& blfmm_panels_, view_reall& proxy_source_weights_, int interp_deg_) : 
+	child_to_parent_2d(view_panel_2d& blfmm_panels_, view_reall& proxy_source_weights_, int interp_deg_) : 
 					blfmm_panels(blfmm_panels_), proxy_source_weights(proxy_source_weights_), interp_deg(interp_deg_) {}
 
 	KOKKOS_INLINE_FUNCTION
