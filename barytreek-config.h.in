@@ -1,0 +1,22 @@
+#ifndef H_BarytreeK_CONFIG_H
+#define H_BarytreeK_CONFIG_H
+
+#define NAMELIST_DIR "@PROJECT_SOURCE_DIR@/"
+
+#include "Kokkos_Core.hpp"
+
+// variables set at compile time
+
+using real = double;
+using view_real_host = Kokkos::View<real*, Kokkos::HostSpace>;
+using view_reall_host = Kokkos::View<real**, Kokkos::LayoutRight, Kokkos::HostSpace>;
+using view_int_host = Kokkos::View<int*, Kokkos::HostSpace>;
+using view_intt_host = Kokkos::View<int**, Kokkos::LayoutRight, Kokkos::HostSpace>;
+using view_real = Kokkos::View<real*>;
+using view_reall = Kokkos::View<real**, Kokkos::LayoutRight>;
+using view_int = Kokkos::View<int*>;
+using view_intt = Kokkos::View<int**, Kokkos::LayoutRight>;
+
+const int max_degree = 10; // max degree of polynomial interpolation used
+
+#endif
