@@ -27,6 +27,7 @@
 
 int main(int argc, char* argv[]) {
 	RunConfig run_config;
+	run_config.dim = 2;
 	read_run_config(std::string(NAMELIST_DIR) + std::string("namelist.txt"), run_config);
 	run_config.mpi_id = 0;
 	run_config.mpi_p = 1;
@@ -76,8 +77,8 @@ int main(int argc, char* argv[]) {
 		view_int_host point_leaf_panel_source ("source point leaf panel indices", point_count); // index of the source leaf panel containing this source point
 		view_intt_host panel_points_inside_source ("source leaf panels contained points", 1, 1); // for source leaf panels, contains the indices of the contained source points
 
-		blfmm_tree_construction(run_config, tree_info_target, x_co_t, y_co_t, blfmm_panels_target, point_leaf_panel_target, panel_points_inside_target);
-		blfmm_tree_construction(run_config, tree_info_source, x_co_s, y_co_s, blfmm_panels_source, point_leaf_panel_source, panel_points_inside_source);
+		blfmm_tree_construction_2d(run_config, tree_info_target, x_co_t, y_co_t, blfmm_panels_target, point_leaf_panel_target, panel_points_inside_target);
+		blfmm_tree_construction_2d(run_config, tree_info_source, x_co_s, y_co_s, blfmm_panels_source, point_leaf_panel_source, panel_points_inside_source);
 
 		end = std::chrono::steady_clock::now();
 		std::cout << "tree construction time: " << std::chrono::duration<double>(end - begin).count() << " seconds" << std::endl;
@@ -107,10 +108,10 @@ int main(int argc, char* argv[]) {
 		std::cout << "cc interaction count: " << run_config.fmm_cc_count << std::endl;
 		begin = std::chrono::steady_clock::now();
 
-		view_real d_x_co_t ("device target x coordiantes", point_count);
-		view_real d_y_co_t ("device target y coordiantes", point_count);
-		view_real d_x_co_s ("device source x coordiantes", point_count);
-		view_real d_y_co_s ("device source y coordiantes", point_count);
+		view_real d_x_co_t ("device target x coordinates", point_count);
+		view_real d_y_co_t ("device target y coordinates", point_count);
+		view_real d_x_co_s ("device source x coordinates", point_count);
+		view_real d_y_co_s ("device source y coordinates", point_count);
 		view_real d_charges ("device charges", point_count);
 		view_real d_sol ("device solution", point_count);
 		view_interact d_pp_ints ("device pp interactions", run_config.fmm_pp_count);

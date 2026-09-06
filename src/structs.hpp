@@ -4,6 +4,7 @@
 #include "barytreek-config.h"
 
 struct RunConfig {
+	int dim; // problem dimension
 	int interp_degree; // interpolation degree to use for BLFMM, namelist parameter
 	int interp_point_count; // number of interpolation points
 	real fmm_theta = 0.7; // MAC parameter for well separated threshold, namelist parameter
