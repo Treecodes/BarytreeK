@@ -1,4 +1,5 @@
-interp_degree=6
+interp_degree=8
+cluster_size=100
 theta=0.7
 kernel_eps=1e-4
 end

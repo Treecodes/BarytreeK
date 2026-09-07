@@ -23,7 +23,7 @@
 // example of solving the Poisson equation in 2d on 1 MPI rank
 // with separate sources and targets
 // specify the number of Kokkos threads at runtime
-// for example, ./example_poisson_2d --kokkos-num-threads=8
+// for example, ./example_poisson_3d_split --kokkos-num-threads=8
 
 int main(int argc, char* argv[]) {
 	RunConfig run_config;

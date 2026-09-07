@@ -27,12 +27,17 @@ void read_run_config(const std::string file_name, RunConfig& run_config) {
 				run_config.interp_degree = max_degree;
 			}
 			run_config.interp_point_count = pow(run_config.interp_degree+1, run_config.dim);
-		} else if (word1 == "theta") {
+		} else if (word1 == "cluster_size") {
+			run_config.fmm_cluster_thresh = stoi(word2);
+			if (run_config.fmm_cluster_thresh <= 0) {
+				run_config.fmm_cluster_thresh = pow(2, run_config.dim) * run_config.interp_point_count;
+			}
+		}
+		else if (word1 == "theta") {
 			run_config.fmm_theta = stod(word2);
 		} else if (word1 == "kernel_eps") {
 			run_config.ker_eps = stod(word2);
 		} else {
-			run_config.fmm_cluster_thresh = pow(2, run_config.dim) * run_config.interp_point_count;
 			return;
 		}
 	}

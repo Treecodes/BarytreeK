@@ -152,7 +152,6 @@ void dual_tree_traversal_3d(RunConfig& run_config, view_panel_3d_host& blfmm_pan
 		if (dist > 0) {
 			separation = (blfmm_panels_target(index_target).radius + blfmm_panels_source(index_source).radius) / dist;
 		}
-		// std::cout << separation << std::endl;
 		if (separation < run_config.fmm_theta) {
 			// well separated
 			interact_pair new_interact = {index_target, index_source, 0};
@@ -178,7 +177,6 @@ void dual_tree_traversal_3d(RunConfig& run_config, view_panel_3d_host& blfmm_pan
 			}
 			temp_interaction_list.push_back(new_interact);
 			interaction_count += 1;
-			// break;
 		} else {
 			// not well separated
 			refine_target = false;

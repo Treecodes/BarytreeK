@@ -11,7 +11,7 @@
 #include "barytreek-config.h"
 
 #include "downward_pass.hpp"
-#include "fmm_interactions/poisson_fmm.hpp"
+#include "fmm_interactions/poisson_vel_fmm.hpp"
 #include "general_utils_impl.hpp"
 #include "interaction_list.hpp"
 #include "read_namelist.hpp"
@@ -20,9 +20,10 @@
 #include "upward_pass.hpp"
 #include "direct_sum_impl.hpp"
 
-// example of solving the Poisson equation in 3d on 1 MPI rank
+// example of computing the gradient of the solution Poisson equation in 3d on 1 MPI rank
+// eg gravitational acceleration
 // specify the number of Kokkos threads at runtime
-// for example, ./example_poisson_3d --kokkos-num-threads=8
+// for example, ./example_poisson_vel_3d --kokkos-num-threads=8
 
 int main(int argc, char* argv[]) {
 	RunConfig run_config;
@@ -56,8 +57,12 @@ int main(int argc, char* argv[]) {
 		view_real_host y_co ("y coordinates", point_count);
 		view_real_host z_co ("z coordinates", point_count);
 		view_real_host charges ("point charges", point_count);
-		view_real_host sols ("solution", point_count);
-		view_real_host sols_ds ("direct sum solution", point_count);
+		view_real_host vel_x ("x velocity", point_count);
+		view_real_host vel_y ("y velocity", point_count);
+		view_real_host vel_z ("z velocity", point_count);
+		view_real_host vel_x_ds ("direct sum x velocity", point_count);
+		view_real_host vel_y_ds ("direct sum y velocity", point_count);
+		view_real_host vel_z_ds ("direct sum z velocity", point_count);
 
 		// generate the points randomly
 		for (int i = 0; i < point_count; i++) {
@@ -106,7 +111,9 @@ int main(int argc, char* argv[]) {
 		view_real d_y_co ("device y coordinates", point_count);
 		view_real d_z_co ("device z coordinates", point_count);
 		view_real d_charges ("device charges", point_count);
-		view_real d_sol ("device solution", point_count);
+		view_real d_vel_x ("device x velocity", point_count);
+		view_real d_vel_y ("device y velocity", point_count);
+		view_real d_vel_z ("device z velocity", point_count);
 		view_interact d_pp_ints ("device pp interactions", run_config.fmm_pp_count);
 		view_interact d_pc_ints ("device pc interactions", run_config.fmm_pc_count);
 		view_interact d_cp_ints ("device cp interactions", run_config.fmm_cp_count);
@@ -128,11 +135,17 @@ int main(int argc, char* argv[]) {
 		Kokkos::deep_copy(d_cc_ints, cc_interactions);
 
 		view_reall proxy_source_weights ("proxy source weights", tree_info.panel_count, run_config.interp_point_count);
-		view_reall proxy_target_weights ("proxy target weights", tree_info.panel_count, run_config.interp_point_count);
+		view_reall proxy_target_weights_x ("proxy target weights x vel", tree_info.panel_count, run_config.interp_point_count);
+		view_reall proxy_target_weights_y ("proxy target weights y vel", tree_info.panel_count, run_config.interp_point_count);
+		view_reall proxy_target_weights_z ("proxy target weights z vel", tree_info.panel_count, run_config.interp_point_count);
 
 		Kokkos::parallel_for(Kokkos::MDRangePolicy({0, 0}, {tree_info.panel_count, run_config.interp_point_count}), fill_2d<real>(proxy_source_weights, 0));
-		Kokkos::parallel_for(Kokkos::MDRangePolicy({0, 0}, {tree_info.panel_count, run_config.interp_point_count}), fill_2d<real>(proxy_target_weights, 0));
-		Kokkos::parallel_for(point_count, fill_1d<real>(d_sol, 0));
+		Kokkos::parallel_for(Kokkos::MDRangePolicy({0, 0}, {tree_info.panel_count, run_config.interp_point_count}), fill_2d<real>(proxy_target_weights_x, 0));
+		Kokkos::parallel_for(Kokkos::MDRangePolicy({0, 0}, {tree_info.panel_count, run_config.interp_point_count}), fill_2d<real>(proxy_target_weights_y, 0));
+		Kokkos::parallel_for(Kokkos::MDRangePolicy({0, 0}, {tree_info.panel_count, run_config.interp_point_count}), fill_2d<real>(proxy_target_weights_z, 0));
+		Kokkos::parallel_for(point_count, fill_1d<real>(d_vel_x, 0));
+		Kokkos::parallel_for(point_count, fill_1d<real>(d_vel_y, 0));
+		Kokkos::parallel_for(point_count, fill_1d<real>(d_vel_z, 0));
 
 		Kokkos::fence();
 		end = std::chrono::steady_clock::now();
@@ -146,44 +159,58 @@ int main(int argc, char* argv[]) {
 		std::cout << "upward pass time: " << std::chrono::duration<double>(end - begin).count() << " seconds" << std::endl;
 		begin = std::chrono::steady_clock::now();
 
-		poisson_fmm_interactions_3d(run_config, d_x_co, d_y_co, d_z_co, d_x_co, d_y_co, d_z_co, d_charges, d_sol, d_panel_points_inside, d_panel_points_inside, proxy_source_weights, proxy_target_weights, d_pp_ints, d_pc_ints, d_cp_ints, d_cc_ints, d_blfmm_panels, d_blfmm_panels);
+		poisson_vel_fmm_interactions_3d(run_config, d_x_co, d_y_co, d_z_co, d_x_co, d_y_co, d_z_co, d_charges, d_vel_x, d_vel_y, d_vel_z, d_panel_points_inside, d_panel_points_inside, proxy_source_weights, proxy_target_weights_x, proxy_target_weights_y, proxy_target_weights_z, d_pp_ints, d_pc_ints, d_cp_ints, d_cc_ints, d_blfmm_panels, d_blfmm_panels);
 
 		Kokkos::fence();
 		end = std::chrono::steady_clock::now();
 		std::cout << "interaction time: " << std::chrono::duration<double>(end - begin).count() << " seconds" << std::endl;
 		begin = std::chrono::steady_clock::now();
 
-		downward_pass_3d(run_config, tree_info, d_x_co, d_y_co, d_z_co, d_sol, d_blfmm_panels, proxy_target_weights, d_panel_points_inside);
+		// downward_pass_3d(run_config, tree_info, d_x_co, d_y_co, d_z_co, d_vel_x, d_blfmm_panels, proxy_target_weights_x, d_panel_points_inside);
+		// downward_pass_3d(run_config, tree_info, d_x_co, d_y_co, d_z_co, d_vel_y, d_blfmm_panels, proxy_target_weights_y, d_panel_points_inside);
+		// downward_pass_3d(run_config, tree_info, d_x_co, d_y_co, d_z_co, d_vel_z, d_blfmm_panels, proxy_target_weights_z, d_panel_points_inside);
+		downward_pass_3d_3(run_config, tree_info, d_x_co, d_y_co, d_z_co, d_vel_x, d_vel_y, d_vel_z, d_blfmm_panels, proxy_target_weights_x, proxy_target_weights_y, proxy_target_weights_z, d_panel_points_inside);
 
 		Kokkos::fence();
 		end = std::chrono::steady_clock::now();
 		std::cout << "downward pass time: " << std::chrono::duration<double>(end - begin).count() << " seconds" << std::endl;
 		begin = std::chrono::steady_clock::now();
 
-		view_real d_sol_ds ("device direct sum solution", point_count);
-		Kokkos::parallel_for(point_count, fill_1d<real>(d_sol_ds, 0));
-		Kokkos::parallel_for(Kokkos::MDRangePolicy({0, 0}, {point_count, point_count}), poisson_3d_dir_sum(d_x_co, d_y_co, d_z_co, d_x_co, d_y_co, d_z_co, d_charges, d_sol_ds, run_config.ker_eps));
+		view_real d_vel_x_ds ("device direct sum vel x", point_count);
+		view_real d_vel_y_ds ("device direct sum vel y", point_count);
+		view_real d_vel_z_ds ("device direct sum vel z", point_count);
+		Kokkos::parallel_for(point_count, fill_1d<real>(d_vel_x_ds, 0));
+		Kokkos::parallel_for(point_count, fill_1d<real>(d_vel_y_ds, 0));
+		Kokkos::parallel_for(point_count, fill_1d<real>(d_vel_z_ds, 0));
+
+		Kokkos::parallel_for(Kokkos::MDRangePolicy({0, 0}, {point_count, point_count}), poisson_vel_3d_dir_sum(d_x_co, d_y_co, d_z_co, d_x_co, d_y_co, d_z_co, d_charges, d_vel_x_ds, d_vel_y_ds, d_vel_z_ds, run_config.ker_eps));
 
 		Kokkos::fence();
 		end = std::chrono::steady_clock::now();
 		std::cout << "direct sum time: " << std::chrono::duration<double>(end - begin).count() << " seconds" << std::endl;
 		begin = std::chrono::steady_clock::now();
 
-		Kokkos::deep_copy(sols, d_sol);
-		Kokkos::deep_copy(sols_ds, d_sol_ds);
+		Kokkos::deep_copy(vel_x, d_vel_x);
+		Kokkos::deep_copy(vel_y, d_vel_y);
+		Kokkos::deep_copy(vel_z, d_vel_z);
+		Kokkos::deep_copy(vel_x_ds, d_vel_x_ds);
+		Kokkos::deep_copy(vel_y_ds, d_vel_y_ds);
+		Kokkos::deep_copy(vel_z_ds, d_vel_z_ds);
 
 		real e1 = 0;
 		real e2 = 0;
 
 		for (int i = 0; i < point_count; i++) {
-			e1 += (sols(i) - sols_ds(i)) * (sols(i) - sols_ds(i));
-			e2 += sols_ds(i) * sols_ds(i);
+			e1 += (vel_x(i) - vel_x_ds(i)) * (vel_x(i) - vel_x_ds(i));
+			e2 += vel_x_ds(i) * vel_x_ds(i);
+			e1 += (vel_y(i) - vel_y_ds(i)) * (vel_y(i) - vel_y_ds(i));
+			e2 += vel_y_ds(i) * vel_y_ds(i);
+			e1 += (vel_y(i) - vel_y_ds(i)) * (vel_y(i) - vel_y_ds(i));
+			e2 += vel_y_ds(i) * vel_y_ds(i);
 		}
 
 		std::cout << "relative l2 error is " << sqrt(e1/e2) << std::endl;
 	}
-
 	Kokkos::finalize();
-
 	return 0;
 }

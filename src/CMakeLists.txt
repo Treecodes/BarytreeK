@@ -1,6 +1,7 @@
 add_library(barytreek
     downward_pass.cpp
     fmm_interactions/poisson_fmm.cpp
+    fmm_interactions/poisson_vel_fmm.cpp
     interaction_list.cpp
     read_namelist.cpp
     tree_construction.cpp
@@ -24,6 +25,8 @@ install(FILES
     downward_pass_impl.hpp
     fmm_interactions/poisson_fmm.hpp
     fmm_interactions/poisson_fmm_impl.hpp
+    fmm_interactions/poisson_vel_fmm.hpp
+    fmm_interactions/poisson_vel_fmm_impl.hpp
     general_utils_impl.hpp
     interaction_list.hpp
     read_namelist.hpp

@@ -340,7 +340,7 @@ struct poisson_cp_interaction_3d {
 		int target_panel = interaction_list(i).target_panel;
 		int source_panel = interaction_list(i).source_panel;
 		int source_count = blfmm_panels_source(source_panel).point_count;
-		real gfc = 1.0/(4.0*std::numbers::pi_v<real>);
+		real gfc = -1.0/(4.0*std::numbers::pi_v<real>);
 		real min_x, max_x, x, min_y, max_y, y, min_z, max_z, z, cheb_x[max_degree+1], cheb_y[max_degree+1], cheb_z[max_degree+1], tx, ty, tz, sx, sy, sz, gfv;
 		min_x = blfmm_panels_target(target_panel).min_x;
 		max_x = blfmm_panels_target(target_panel).max_x;

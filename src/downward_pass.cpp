@@ -27,3 +27,15 @@ void downward_pass_3d(const RunConfig& run_config, const TreeInfo& tree_info, vi
 	ub = tree_info.level_start[tree_info.levels];
 	Kokkos::parallel_for(Kokkos::RangePolicy(lb, ub), leaf_to_point_3d(xcos, ycos, zcos, soln, proxy_target_weights, blfmm_panels, panel_points_inside, run_config.interp_degree));
 }
+
+void downward_pass_3d_3(const RunConfig& run_config, const TreeInfo& tree_info, view_real& xcos, view_real& ycos, view_real& zcos, view_real& vel_x, view_real& vel_y, view_real& vel_z, view_panel_3d& blfmm_panels, view_reall& proxy_target_weights_x, view_reall& proxy_target_weights_y, view_reall& proxy_target_weights_z, view_intt& panel_points_inside) {
+	int lb, ub;
+	for (int i = 0; i < tree_info.levels-1; i++) {
+		lb = tree_info.level_start[i];
+		ub = tree_info.level_start[i+1];
+		Kokkos::parallel_for(Kokkos::MDRangePolicy({lb, 0},{ub, 8}), parent_to_child_3d_3(blfmm_panels, proxy_target_weights_x, proxy_target_weights_y, proxy_target_weights_z, run_config.interp_degree));
+	}
+	lb = tree_info.level_start[tree_info.levels-1];
+	ub = tree_info.level_start[tree_info.levels];
+	Kokkos::parallel_for(Kokkos::RangePolicy(lb, ub), leaf_to_point_3d_3(xcos, ycos, zcos, vel_x, vel_y, vel_z, proxy_target_weights_x, proxy_target_weights_y, proxy_target_weights_z, blfmm_panels, panel_points_inside, run_config.interp_degree));
+}

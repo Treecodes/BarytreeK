@@ -31,7 +31,6 @@ struct base_pots_2d {
 		real max_x = blfmm_panels(leaf).max_x;
 		real min_y = blfmm_panels(leaf).min_y;
 		real max_y = blfmm_panels(leaf).max_y;
-		// interp_vals_bli_2d(x_basis_vals, y_basis_vals, x, y, min_x, max_x, min_y, max_y, interp_deg);
 		interp_vals_bli(x_basis_vals, x, min_x, max_x, interp_deg);
 		interp_vals_bli(y_basis_vals, y, min_y, max_y, interp_deg);
 		int index = 0;
@@ -73,7 +72,6 @@ struct child_to_parent_2d {
 			for (int j1 = 0; j1 < interp_deg+1; j1++) { // child x loop
 				interp_vals_bli(x_basis_vals, cheb_x[j1], min_x_p, max_x_p, interp_deg);
 				for (int k1 = 0; k1 < interp_deg+1; k1++) { // child y loop
-					// interp_vals_bli_2d(x_basis_vals, y_basis_vals, cheb_x[j1], cheb_y[k1], min_x_p, max_x_p, min_y_p, max_y_p, interp_deg);
 					interp_vals_bli(y_basis_vals, cheb_y[k1], min_y_p, max_y_p, interp_deg);
 					index2 = 0;
 					for (int j2 = 0; j2 < interp_deg+1; j2++) { // parent x loop
@@ -118,7 +116,6 @@ struct base_pots_3d {
 		real max_y = blfmm_panels(leaf).max_y;
 		real min_z = blfmm_panels(leaf).min_z;
 		real max_z = blfmm_panels(leaf).max_z;
-		// interp_vals_bli_2d(x_basis_vals, y_basis_vals, x, y, min_x, max_x, min_y, max_y, interp_deg);
 		interp_vals_bli(x_basis_vals, x, min_x, max_x, interp_deg);
 		interp_vals_bli(y_basis_vals, y, min_y, max_y, interp_deg);
 		interp_vals_bli(z_basis_vals, z, min_z, max_z, interp_deg);
